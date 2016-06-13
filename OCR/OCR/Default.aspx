@@ -130,13 +130,7 @@
                             <div class="col-sm-10">
                                 <asp:TextBox ID="txtColumns" runat="server" class="form-control" placeholder="Columns"></asp:TextBox>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="inputEmail3" class="col-sm-2 control-label">Total Rows</label>
-                            <div class="col-sm-10">
-                                <asp:TextBox ID="txtRows" runat="server" class="form-control" placeholder="Columns"></asp:TextBox>
-                            </div>
-                        </div>
+                        </div>                       
                         <div class="form-group">
                             <asp:Button ID="btnOCRReader" runat="server" Text="Read Image Data" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" />
                         </div>

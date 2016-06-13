@@ -75,6 +75,19 @@ namespace OCRExtractTable
             int.TryParse(txtColumns.Text, out totalColumns);
             int totalRows = 0;
             int.TryParse(txtRows.Text, out totalRows);
+             
+            using (var api = OcrApi.Create())
+            {
+                api.Init(Languages.English, datapath);
+                using (var bmp = Bitmap.FromFile(filePath) as Bitmap)
+                {
+                    api.PageSegmentationMode = PageSegMode.PSM_SINGLE_BLOCK;
+                    int temprows = api.GetTextFromImage(bmp).Replace("\n\n", "\n").Split('\n').Count();
+                    temprows = temprows > 0 ? temprows - 1 : temprows;
+                    totalRows = temprows;
+                }
+            }
+           
             cropimages = MultiCrop(filePath, img, totalRows, totalColumns);
 
             string directorypath = Server.MapPath("~/uploads/") + Path.GetFileNameWithoutExtension(filePath);
@@ -106,6 +119,7 @@ namespace OCRExtractTable
                             api.Init(Languages.English, datapath, OcrEngineMode.OEM_DEFAULT, configs);
                             using (var bmp = Bitmap.FromFile(temp_crop_file) as Bitmap)
                             {
+                                api.PageSegmentationMode =  PageSegMode.PSM_RAW_LINE;
                                 string extracedText = api.GetTextFromImage(bmp);
                                 lstdata.Add(extracedText); 
                             }
