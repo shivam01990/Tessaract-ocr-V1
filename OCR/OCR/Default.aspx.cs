@@ -29,6 +29,14 @@ namespace OCRExtractTable
         #region--btnOCRReader_Click--
         protected void btnOCRReader_Click(object sender, EventArgs e)
         {
+            int totalColumns = 0;
+            int.TryParse(txtColumns.Text, out totalColumns);
+
+            if (totalColumns == 0)
+            {
+                return;
+            }
+
             string filePath = Server.MapPath("~/uploads/" + Path.GetFileName(hdnUploadedImage.Value));
 
             // Crop Image Here & Save
@@ -74,7 +82,7 @@ namespace OCRExtractTable
             int totalColumns = 0;
             int.TryParse(txtColumns.Text, out totalColumns);
             int totalRows = 0;
-             
+
             using (var api = OcrApi.Create())
             {
                 api.Init(Languages.English, datapath);
@@ -86,7 +94,7 @@ namespace OCRExtractTable
                     totalRows = temprows;
                 }
             }
-           
+
             cropimages = MultiCrop(filePath, img, totalRows, totalColumns);
 
             string directorypath = Server.MapPath("~/uploads/") + Path.GetFileNameWithoutExtension(filePath);
@@ -118,9 +126,16 @@ namespace OCRExtractTable
                             api.Init(Languages.English, datapath, OcrEngineMode.OEM_DEFAULT, configs);
                             using (var bmp = Bitmap.FromFile(temp_crop_file) as Bitmap)
                             {
-                                api.PageSegmentationMode =  PageSegMode.PSM_RAW_LINE;
-                                string extracedText = api.GetTextFromImage(bmp);
-                                lstdata.Add(extracedText); 
+                                api.PageSegmentationMode = PageSegMode.PSM_RAW_LINE;
+                                string extracedText =api.GetTextFromImage(bmp);
+                                if (IsValidLetter(extracedText))
+                                {
+                                    lstdata.Add(extracedText);
+                                }
+                                else
+                                {
+                                    lstdata.Add("");
+                                }
                             }
                         }
                     }
@@ -157,22 +172,36 @@ namespace OCRExtractTable
 
         public List<System.Drawing.Image> MultiCrop(string filepath, System.Drawing.Image img, int row, int col)
         {
+            List<decimal> widthlst = new List<decimal>();
+            foreach (string item in hdnColumnWidths.Value.Split(',').ToList())
+            {
+                decimal temp = 0;
+                decimal.TryParse(item, out temp);
+                widthlst.Add(temp);
+            }
             List<System.Drawing.Image> list = new List<System.Drawing.Image>();
             Graphics g = Graphics.FromImage(img);
             Brush redBrush = new SolidBrush(Color.Red);
             Pen pen = new Pen(redBrush, 3);
             for (int i = 0; i < row; i++)
             {
+                int xloc = 0;
                 for (int y = 0; y < col; y++)
                 {
+
+                    int tempwidth = Convert.ToInt32(Math.Floor(Convert.ToDouble((widthlst[y] * img.Width) / 100)));
                     System.Drawing.Image temp = System.Drawing.Image.FromFile(filepath, true);
 
 
-                    Rectangle r = new Rectangle(y * (img.Width / col),
+                    //Rectangle r = new Rectangle(y * (img.Width / col),
+                    //                            i * (img.Height / row),
+                    //                            img.Width / col,
+                    //                            img.Height / row);
+                    Rectangle r = new Rectangle(xloc,
                                                 i * (img.Height / row),
-                                                img.Width / col,
+                                                tempwidth,
                                                 img.Height / row);
-
+                    xloc += tempwidth;
                     g.DrawRectangle(pen, r);
                     list.Add(cropImage(temp, r));
                 }
@@ -267,6 +296,21 @@ namespace OCRExtractTable
         }
         #endregion
 
+        #region --Is valid letter--
+        public bool IsValidLetter(string word)
+        {
+            // isolate the letters
+            string[] letters = new string[] {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"}; // other strings or letters
+                
+            bool flag = false;
+            // check if the work does not contain any letter
+            if (letters.Any(x => word.Contains(x.ToLower())))
+            {
+                flag = true;
+            }
+            return flag;
+        }
+        #endregion
 
     }
 }

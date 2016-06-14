@@ -81,11 +81,12 @@
                 if (totalwitdhsum > 100) {
                     appendhtml += "   <label id=\"lbltotalwidthper\" class=\"control-label text-danger\">" + totalwitdhsum + "</label>";
                 } else {
-                    appendhtml += "   <label class=\"control-label text-success\">" + totalwitdhsum + "</label>";
+                    appendhtml += "   <label id=\"lbltotalwidthper\" class=\"control-label text-success\">" + totalwitdhsum + "</label>";
                 }
                 appendhtml += "  </div>";
                 appendhtml += " </div>";
                 $("[id$=divcolumnwidth]").html(appendhtml);
+                $("[id$=hdnColumnWidths]").val(colstring);
                 return false;
             });
 
@@ -127,20 +128,27 @@
         }
 
 
-        
+
         function readAlltextbox() {
+            var flag = false;
             var colstring = "";
+            var totalwitdhsum = 0;
             $("[id^=txtwidthcolumn_]").each(function () {
 
+                totalwitdhsum = (parseFloat(totalwitdhsum) + parseFloat($(this).val()));
                 colstring += $(this).val() + ",";
-
-                alert(this.id);
             });
             if (colstring.length > 0) {
                 colstring = colstring.substring(0, colstring.length - 1);
             }
             $("[id$=hdnColumnWidths]").val(colstring);
-            $("[id$=lbltotalwidthper]").val(0);
+            $("[id$=lbltotalwidthper]").text(totalwitdhsum);
+            if (totalwitdhsum > 100) {
+                alert("Total width shoud be less than 100%");
+            } else {
+                flag = true;
+            }
+            return flag;
         }
 
 
@@ -200,12 +208,12 @@
                             <div class="col-sm-10">
                                 <asp:TextBox ID="txtColumns" runat="server" class="form-control" placeholder="Columns"></asp:TextBox>
                             </div>
-                           
+
                         </div>
-                         <div id="divcolumnwidth">
-                            </div>
+                        <div id="divcolumnwidth">
+                        </div>
                         <div class="form-group">
-                            <asp:Button ID="btnOCRReader" runat="server" Text="Read Image Data" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" />
+                            <asp:Button ID="btnOCRReader" runat="server" Text="Read Image Data" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" OnClientClick="return readAlltextbox();" />
                         </div>
                     </div>
                 </div>
