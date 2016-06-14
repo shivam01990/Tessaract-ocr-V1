@@ -44,6 +44,52 @@
     <script type="text/javascript">
         var rootpath = '<%=Page.ResolveUrl("~")%>';
         $(document).ready(function () {
+            $("[id$=txtColumns]").change(function () {
+                var totalColumns = 0;
+                var distributedwidth = 0;
+                if (!isNaN(parseInt($("[id$=txtColumns]").val()))) {
+                    totalColumns = parseInt($("[id$=txtColumns]").val());
+                }
+
+                if (totalColumns > 0) {
+                    distributedwidth = (100 / totalColumns).toFixedDown(2);
+                }
+                var totalwitdhsum = 0;
+                var appendhtml = "";
+                var colstring = "";
+                for (var i = 0; i < totalColumns; i++) {
+                    appendhtml += " <div class=\"form-group\">";
+                    appendhtml += "  <div class=\"col-sm-2\">";
+                    appendhtml += "    <label class=\"control-label\">Columns " + (i + 1) + " width(%)</label>";
+                    appendhtml += "  </div>";
+                    appendhtml += "  <div class=\"col-sm-5\">";
+                    appendhtml += "   <input id=\"txtwidthcolumn_" + i + "\" type=\"text\" class=\"form-control\" onchange=\"readAlltextbox()\" value=\"" + distributedwidth + "\"/>";
+                    appendhtml += "  </div>";
+                    appendhtml += " </div>";
+                    totalwitdhsum = (parseFloat(totalwitdhsum) + parseFloat(distributedwidth));
+                    colstring += distributedwidth + ",";
+                }
+                if (colstring.length > 0) {
+                    colstring = colstring.substring(0, colstring.length - 1);
+                }
+
+                appendhtml += " <div class=\"form-group\">";
+                appendhtml += "  <div class=\"col-sm-2\">";
+                appendhtml += "    <label class=\"control-label\">Total Width(%) of Columns</label>";
+                appendhtml += "  </div>";
+                appendhtml += "  <div class=\"col-sm-5\">";
+                if (totalwitdhsum > 100) {
+                    appendhtml += "   <label id=\"lbltotalwidthper\" class=\"control-label text-danger\">" + totalwitdhsum + "</label>";
+                } else {
+                    appendhtml += "   <label class=\"control-label text-success\">" + totalwitdhsum + "</label>";
+                }
+                appendhtml += "  </div>";
+                appendhtml += " </div>";
+                $("[id$=divcolumnwidth]").html(appendhtml);
+                return false;
+            });
+
+
             $("#file_BrandImage").fileinput({
                 uploadUrl: rootpath + 'FileUploadHandler.ashx',
                 uploadAsync: true,
@@ -79,6 +125,30 @@
             $('#<%=W.ClientID%>').val(parseInt(c.w));
             $('#<%=H.ClientID%>').val(parseInt(c.h));
         }
+
+
+        
+        function readAlltextbox() {
+            var colstring = "";
+            $("[id^=txtwidthcolumn_]").each(function () {
+
+                colstring += $(this).val() + ",";
+
+                alert(this.id);
+            });
+            if (colstring.length > 0) {
+                colstring = colstring.substring(0, colstring.length - 1);
+            }
+            $("[id$=hdnColumnWidths]").val(colstring);
+            $("[id$=lbltotalwidthper]").val(0);
+        }
+
+
+        Number.prototype.toFixedDown = function (digits) {
+            var re = new RegExp("(\\d+\\.\\d{" + digits + "})(\\d)"),
+                m = this.toString().match(re);
+            return m ? parseFloat(m[1]) : this.valueOf();
+        };
     </script>
 </head>
 <body>
@@ -130,7 +200,10 @@
                             <div class="col-sm-10">
                                 <asp:TextBox ID="txtColumns" runat="server" class="form-control" placeholder="Columns"></asp:TextBox>
                             </div>
-                        </div>                       
+                           
+                        </div>
+                         <div id="divcolumnwidth">
+                            </div>
                         <div class="form-group">
                             <asp:Button ID="btnOCRReader" runat="server" Text="Read Image Data" CssClass="btn btn-primary" OnClick="btnOCRReader_Click" />
                         </div>
@@ -144,6 +217,7 @@
         <asp:HiddenField ID="Y" runat="server" />
         <asp:HiddenField ID="W" runat="server" />
         <asp:HiddenField ID="H" runat="server" />
+        <asp:HiddenField ID="hdnColumnWidths" runat="server" />
     </form>
 </body>
 </html>

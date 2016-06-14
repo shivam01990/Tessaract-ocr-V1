@@ -74,7 +74,6 @@ namespace OCRExtractTable
             int totalColumns = 0;
             int.TryParse(txtColumns.Text, out totalColumns);
             int totalRows = 0;
-            int.TryParse(txtRows.Text, out totalRows);
              
             using (var api = OcrApi.Create())
             {
